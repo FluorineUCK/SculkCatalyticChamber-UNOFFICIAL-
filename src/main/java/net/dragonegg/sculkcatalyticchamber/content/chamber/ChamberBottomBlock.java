@@ -1,34 +1,31 @@
-package net.dragonegg.sculkcatalyticchamber.content.block;
+package net.dragonegg.sculkcatalyticchamber.content.chamber;
 
 import com.simibubi.create.AllShapes;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.simibubi.create.foundation.block.IBE;
 import com.simibubi.create.foundation.item.ItemHelper;
-import net.dragonegg.sculkcatalyticchamber.Registry;
-import net.dragonegg.sculkcatalyticchamber.content.block.entity.BottomBlockEntity;
+import net.dragonegg.sculkcatalyticchamber.registry.BlockRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
 
-public class BottomBlock extends Block implements IBEIOUsable<BottomBlockEntity>, IWrenchable {
+import static com.simibubi.create.content.processing.basin.BasinBlock.FACING;
 
-    public static final DirectionProperty FACING;
+public class ChamberBottomBlock extends Block implements IChamberBE<ChamberBottomBlockEntity>, IWrenchable {
 
-    public BottomBlock(Properties pProperties) {
+    public ChamberBottomBlock(Properties pProperties) {
         super(pProperties);
         this.registerDefaultState(this.defaultBlockState().setValue(FACING, Direction.DOWN));
     }
@@ -38,8 +35,16 @@ public class BottomBlock extends Block implements IBEIOUsable<BottomBlockEntity>
     }
 
     @Override
+    public InteractionResult onWrenched(BlockState state, UseOnContext context) {
+        if (!context.getLevel().isClientSide)
+            withBlockEntityDo(context.getLevel(), context.getClickedPos(),
+                    bte -> bte.onWrenched(context.getClickedFace()));
+        return InteractionResult.SUCCESS;
+    }
+
+    @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        return this.IOUse(level, pos, player, hand, hit);
+        return this.interact(level, pos, player, hand, hit);
     }
 
     @Override
@@ -65,21 +70,18 @@ public class BottomBlock extends Block implements IBEIOUsable<BottomBlockEntity>
     @Override
     public int getAnalogOutputSignal(BlockState blockState, Level worldIn, BlockPos pos) {
         return this.getBlockEntityOptional(worldIn, pos)
-                .map(BottomBlockEntity::getInputInventory)
+                .map(ChamberBlockEntity::getInputInventory)
                 .map(ItemHelper::calcRedstoneFromInventory).orElse(0);
     }
 
     @Override
-    public Class<BottomBlockEntity> getBlockEntityClass() {
-        return BottomBlockEntity.class;
+    public Class<ChamberBottomBlockEntity> getBlockEntityClass() {
+        return ChamberBottomBlockEntity.class;
     }
 
     @Override
-    public BlockEntityType<? extends BottomBlockEntity> getBlockEntityType() {
-        return Registry.BOTTOM_BLOCK_TILE.get();
+    public BlockEntityType<? extends ChamberBottomBlockEntity> getBlockEntityType() {
+        return BlockRegistry.CHAMBER_BOTTOM_BLOCK_TILE.get();
     }
 
-    static {
-        FACING = BlockStateProperties.FACING_HOPPER;
-    }
 }

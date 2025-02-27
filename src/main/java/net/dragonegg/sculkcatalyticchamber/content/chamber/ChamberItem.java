@@ -1,6 +1,6 @@
-package net.dragonegg.sculkcatalyticchamber.content.item;
+package net.dragonegg.sculkcatalyticchamber.content.chamber;
 
-import net.dragonegg.sculkcatalyticchamber.Registry;
+import net.dragonegg.sculkcatalyticchamber.registry.BlockRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.BlockItem;
@@ -9,9 +9,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class MultiBlockItem extends BlockItem {
+public class ChamberItem extends BlockItem {
 
-    public MultiBlockItem(Block pBlock, Properties pProperties) {
+    public ChamberItem(Block pBlock, Properties pProperties) {
         super(pBlock, pProperties);
     }
 
@@ -38,9 +38,9 @@ public class MultiBlockItem extends BlockItem {
         BlockPos pos = pContext.getClickedPos();
         level.setBlock(pos, pState, 11);
         pos = pos.above();
-        level.setBlock(pos, Registry.MIDDLE_BLOCK.getDefaultState(), 11);
+        level.setBlock(pos, BlockRegistry.CHAMBER_MIDDLE_BLOCK.getDefaultState(), 11);
         pos = pos.above();
-        level.setBlock(pos, Registry.TOP_BLOCK.getDefaultState(), 11);
+        level.setBlock(pos, BlockRegistry.CHAMBER_TOP_BLOCK.getDefaultState(), 11);
         return true;
     }
 }

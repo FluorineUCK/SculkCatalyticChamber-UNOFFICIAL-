@@ -1,6 +1,7 @@
 package net.dragonegg.sculkcatalyticchamber;
 
 import com.simibubi.create.foundation.data.CreateRegistrate;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.server.ServerStartingEvent;
@@ -55,5 +56,9 @@ public class SculkCatalyticChamber {
 
     public static CreateRegistrate registrate() {
         return registrate;
+    }
+
+    public static ResourceLocation asResource(String path) {
+        return new ResourceLocation(MODID, path);
     }
 }

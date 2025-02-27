@@ -1,13 +1,9 @@
-package net.dragonegg.sculkcatalyticchamber.content.block;
+package net.dragonegg.sculkcatalyticchamber.content.chamber;
 
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
-import com.simibubi.create.content.kinetics.base.IRotate;
-import com.simibubi.create.content.kinetics.base.KineticBlock;
 import com.simibubi.create.foundation.block.IBE;
 import com.simibubi.create.foundation.item.ItemHelper;
-import net.dragonegg.sculkcatalyticchamber.Registry;
-import net.dragonegg.sculkcatalyticchamber.content.block.entity.BottomBlockEntity;
-import net.dragonegg.sculkcatalyticchamber.content.block.entity.TopBlockEntity;
+import net.dragonegg.sculkcatalyticchamber.registry.BlockRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -23,17 +19,16 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 
-public class TopBlock extends KineticBlock implements IBEIOUsable<TopBlockEntity>, IWrenchable {
-
-    public TopBlock(Properties pProperties) {
+public class ChamberMiddleBlock extends Block implements IChamberBE<ChamberMiddleBlockEntity>, IWrenchable {
+    public ChamberMiddleBlock(Properties pProperties) {
         super(pProperties);
     }
 
     private boolean hasBottom(BlockGetter level, BlockPos pos) {
-        BlockState p = level.getBlockState(pos.below(2));
-        return p.getBlock() instanceof BottomBlock;
+        BlockState p = level.getBlockState(pos.below(1));
+        return p.getBlock() instanceof ChamberBottomBlock;
     }
 
     @Override
@@ -43,12 +38,7 @@ public class TopBlock extends KineticBlock implements IBEIOUsable<TopBlockEntity
 
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        return this.IOUse(level, pos, player, hand, hit);
-    }
-
-    @Override
-    public VoxelShape getInteractionShape(BlockState p_199600_1_, BlockGetter p_199600_2_, BlockPos p_199600_3_) {
-        return Block.box(0.0F, 0.0F, 0.0F, 16.0F, 14.0F, 16.0F);
+        return this.interact(level, pos, player, hand, hit);
     }
 
     @Override
@@ -66,29 +56,13 @@ public class TopBlock extends KineticBlock implements IBEIOUsable<TopBlockEntity
     public void playerWillDestroy(Level level, BlockPos pos, BlockState state, Player pPlayer) {
         super.playerWillDestroy(level, pos, state, pPlayer);
         if (this.hasBottom(level, pos)) {
-            level.destroyBlock(pos.below(2), !pPlayer.isCreative());
+            level.destroyBlock(pos.below(1), !pPlayer.isCreative());
         }
     }
 
     @Override
-    public boolean hasShaftTowards(LevelReader world, BlockPos pos, BlockState state, Direction face) {
-        return face == Direction.UP;
-    }
-
-    @Override
-    public Direction.Axis getRotationAxis(BlockState blockState) {
-        return Direction.Axis.Y;
-    }
-
-    @Override
-    public IRotate.SpeedLevel getMinimumRequiredSpeedLevel() {
-        //TODO: get from config
-        return IRotate.SpeedLevel.valueOf("none");
-    }
-
-    @Override
     public ItemStack getCloneItemStack(BlockGetter level, BlockPos pos, BlockState state) {
-        return this.hasBottom(level, pos)? Registry.BOTTOM_BLOCK.asStack() : ItemStack.EMPTY;
+        return this.hasBottom(level, pos)? BlockRegistry.CHAMBER_BOTTOM_BLOCK.asStack() : ItemStack.EMPTY;
     }
 
     @Override
@@ -99,17 +73,17 @@ public class TopBlock extends KineticBlock implements IBEIOUsable<TopBlockEntity
     @Override
     public int getAnalogOutputSignal(BlockState blockState, Level worldIn, BlockPos pos) {
         return this.getBlockEntityOptional(worldIn, pos)
-                .map(TopBlockEntity::getInventory)
-                .map(ItemHelper::calcRedstoneFromInventory).orElse(0);
+                .map(be -> be.getCapability(ForgeCapabilities.ITEM_HANDLER)
+                        .map(ItemHelper::calcRedstoneFromInventory).orElse(0)).orElse(0);
     }
 
     @Override
-    public Class<TopBlockEntity> getBlockEntityClass() {
-        return TopBlockEntity.class;
+    public Class<ChamberMiddleBlockEntity> getBlockEntityClass() {
+        return ChamberMiddleBlockEntity.class;
     }
 
     @Override
-    public BlockEntityType<? extends TopBlockEntity> getBlockEntityType() {
-        return Registry.TOP_BLOCK_TILE.get();
+    public BlockEntityType<? extends ChamberMiddleBlockEntity> getBlockEntityType() {
+        return BlockRegistry.CHAMBER_MIDDLE_BLOCK_TILE.get();
     }
 }

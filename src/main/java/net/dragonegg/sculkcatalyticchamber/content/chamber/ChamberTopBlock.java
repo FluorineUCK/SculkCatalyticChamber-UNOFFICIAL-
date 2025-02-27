@@ -1,11 +1,9 @@
-package net.dragonegg.sculkcatalyticchamber.content.block;
+package net.dragonegg.sculkcatalyticchamber.content.chamber;
 
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
-import com.simibubi.create.content.processing.basin.BasinBlockEntity;
 import com.simibubi.create.foundation.block.IBE;
 import com.simibubi.create.foundation.item.ItemHelper;
-import net.dragonegg.sculkcatalyticchamber.Registry;
-import net.dragonegg.sculkcatalyticchamber.content.block.entity.MiddleBlockEntity;
+import net.dragonegg.sculkcatalyticchamber.registry.BlockRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -21,17 +19,17 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.common.capabilities.CapabilityProvider;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
-public class MiddleBlock extends Block implements IBEIOUsable<MiddleBlockEntity>, IWrenchable {
-    public MiddleBlock(Properties pProperties) {
+public class ChamberTopBlock extends Block implements IChamberBE<ChamberTopBlockEntity>, IWrenchable {
+
+    public ChamberTopBlock(Properties pProperties) {
         super(pProperties);
     }
 
     private boolean hasBottom(BlockGetter level, BlockPos pos) {
-        BlockState p = level.getBlockState(pos.below(1));
-        return p.getBlock() instanceof BottomBlock;
+        BlockState p = level.getBlockState(pos.below(2));
+        return p.getBlock() instanceof ChamberBottomBlock;
     }
 
     @Override
@@ -41,7 +39,12 @@ public class MiddleBlock extends Block implements IBEIOUsable<MiddleBlockEntity>
 
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        return this.IOUse(level, pos, player, hand, hit);
+        return this.interact(level, pos, player, hand, hit);
+    }
+
+    @Override
+    public VoxelShape getInteractionShape(BlockState p_199600_1_, BlockGetter p_199600_2_, BlockPos p_199600_3_) {
+        return Block.box(0.0F, 0.0F, 0.0F, 16.0F, 14.0F, 16.0F);
     }
 
     @Override
@@ -59,13 +62,13 @@ public class MiddleBlock extends Block implements IBEIOUsable<MiddleBlockEntity>
     public void playerWillDestroy(Level level, BlockPos pos, BlockState state, Player pPlayer) {
         super.playerWillDestroy(level, pos, state, pPlayer);
         if (this.hasBottom(level, pos)) {
-            level.destroyBlock(pos.below(1), !pPlayer.isCreative());
+            level.destroyBlock(pos.below(2), !pPlayer.isCreative());
         }
     }
 
     @Override
     public ItemStack getCloneItemStack(BlockGetter level, BlockPos pos, BlockState state) {
-        return this.hasBottom(level, pos)? Registry.BOTTOM_BLOCK.asStack() : ItemStack.EMPTY;
+        return this.hasBottom(level, pos)? BlockRegistry.CHAMBER_BOTTOM_BLOCK.asStack() : ItemStack.EMPTY;
     }
 
     @Override
@@ -76,17 +79,17 @@ public class MiddleBlock extends Block implements IBEIOUsable<MiddleBlockEntity>
     @Override
     public int getAnalogOutputSignal(BlockState blockState, Level worldIn, BlockPos pos) {
         return this.getBlockEntityOptional(worldIn, pos)
-                .map(be -> be.getCapability(ForgeCapabilities.ITEM_HANDLER)
-                        .map(ItemHelper::calcRedstoneFromInventory).orElse(0)).orElse(0);
+                .map(ChamberBlockEntity::getInputInventory)
+                .map(ItemHelper::calcRedstoneFromInventory).orElse(0);
     }
 
     @Override
-    public Class<MiddleBlockEntity> getBlockEntityClass() {
-        return MiddleBlockEntity.class;
+    public Class<ChamberTopBlockEntity> getBlockEntityClass() {
+        return ChamberTopBlockEntity.class;
     }
 
     @Override
-    public BlockEntityType<? extends MiddleBlockEntity> getBlockEntityType() {
-        return Registry.MIDDLE_BLOCK_TILE.get();
+    public BlockEntityType<? extends ChamberTopBlockEntity> getBlockEntityType() {
+        return BlockRegistry.CHAMBER_TOP_BLOCK_TILE.get();
     }
 }
