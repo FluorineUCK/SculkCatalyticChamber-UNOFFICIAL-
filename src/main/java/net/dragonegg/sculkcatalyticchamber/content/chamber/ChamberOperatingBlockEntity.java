@@ -86,9 +86,8 @@ public abstract class ChamberOperatingBlockEntity extends KineticBlockEntity {
         if (recipe == null)
             return false;
         Optional<ChamberBlockEntity> chamber = getChamber();
-        if (chamber.isEmpty())
-            return false;
-        return ChamberRecipe.match(chamber.get(), recipe);
+        return chamber.filter(chamberBlockEntity ->
+                ChamberRecipe.match(chamberBlockEntity, recipe)).isPresent();
     }
 
     protected void applyChamberRecipe() {
@@ -115,15 +114,21 @@ public abstract class ChamberOperatingBlockEntity extends KineticBlockEntity {
     }
 
     protected List<Recipe<?>> getMatchingRecipes() {
-        if (getChamber().map(ChamberBlockEntity::isEmpty).orElse(true))
+        Optional<ChamberBlockEntity> chamber = getChamber();
+        if (chamber.map(ChamberBlockEntity::getTop).map(ChamberBlockEntity::isEmpty).orElse(true) &&
+                chamber.map(ChamberBlockEntity::getMiddle).map(ChamberBlockEntity::isEmpty).orElse(true) &&
+                chamber.map(ChamberBlockEntity::getBottom).map(ChamberBlockEntity::isEmpty).orElse(true))
             return new ArrayList<>();
 
-        List<Recipe<?>> list = RecipeFinder.get(getRecipeCacheKey(), level, this::matchStaticFilters);
-        return list.stream()
+        return getAllRecipes().stream()
                 .filter(this::matchChamberRecipe)
                 .sorted((r1, r2) ->
                         r2.getIngredients().size() - r1.getIngredients().size())
                 .collect(Collectors.toList());
+    }
+
+    protected List<Recipe<?>> getAllRecipes() {
+        return RecipeFinder.get(getRecipeCacheKey(), level, this::matchStaticFilters);
     }
 
     protected abstract void onChamberRemoved();

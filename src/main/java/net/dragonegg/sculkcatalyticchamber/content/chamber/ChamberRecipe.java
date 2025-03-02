@@ -1,6 +1,5 @@
 package net.dragonegg.sculkcatalyticchamber.content.chamber;
 
-import com.simibubi.create.Create;
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock;
 import com.simibubi.create.content.processing.recipe.HeatCondition;
 import com.simibubi.create.content.processing.recipe.ProcessingOutput;
@@ -9,6 +8,7 @@ import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTank
 import com.simibubi.create.foundation.fluid.FluidIngredient;
 import com.simibubi.create.foundation.item.SmartInventory;
 import com.simibubi.create.foundation.recipe.IRecipeTypeInfo;
+import com.simibubi.create.foundation.recipe.RecipeFinder;
 import com.simibubi.create.foundation.utility.Iterate;
 import net.dragonegg.sculkcatalyticchamber.registry.RecipeRegistry;
 import net.minecraft.core.NonNullList;
@@ -25,7 +25,6 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -252,8 +251,6 @@ public class ChamberRecipe implements Recipe<SmartInventory> {
             if (fluidsAffected) {
                 topBE.getBehaviour(SmartFluidTankBehaviour.INPUT)
                         .forEach(SmartFluidTankBehaviour.TankSegment::onFluidStackChanged);
-                topBE.getBehaviour(SmartFluidTankBehaviour.OUTPUT)
-                        .forEach(SmartFluidTankBehaviour.TankSegment::onFluidStackChanged);
             }
 
             Ingredients:
@@ -304,8 +301,6 @@ public class ChamberRecipe implements Recipe<SmartInventory> {
 
             if (fluidsAffected) {
                 middleBE.getBehaviour(SmartFluidTankBehaviour.INPUT)
-                        .forEach(SmartFluidTankBehaviour.TankSegment::onFluidStackChanged);
-                middleBE.getBehaviour(SmartFluidTankBehaviour.OUTPUT)
                         .forEach(SmartFluidTankBehaviour.TankSegment::onFluidStackChanged);
             }
 

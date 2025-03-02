@@ -9,7 +9,7 @@ public class ChamberInventory extends SmartInventory {
     private ChamberBlockEntity blockEntity;
 
     public ChamberInventory(int slots, ChamberBlockEntity be) {
-        super(slots, be, 16, true);
+        super(slots, be, 64, true);
         this.blockEntity = be;
     }
 

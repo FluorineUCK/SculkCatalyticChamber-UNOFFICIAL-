@@ -1,6 +1,7 @@
 package net.dragonegg.sculkcatalyticchamber.content.chamber;
 
 import com.google.common.collect.ImmutableList;
+import com.simibubi.create.Create;
 import com.simibubi.create.content.fluids.FluidFX;
 import com.simibubi.create.content.processing.basin.BasinBlock;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
@@ -14,13 +15,22 @@ import com.simibubi.create.foundation.item.SmartInventory;
 import com.simibubi.create.foundation.utility.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -37,7 +47,7 @@ import net.minecraftforge.items.wrapper.CombinedInvWrapper;
 
 import java.util.*;
 
-import static com.simibubi.create.content.processing.basin.BasinBlock.FACING;
+import static net.dragonegg.sculkcatalyticchamber.content.chamber.ChamberBottomBlock.FACING;
 
 public class ChamberBottomBlockEntity extends ChamberBlockEntity {
 
@@ -74,10 +84,12 @@ public class ChamberBottomBlockEntity extends ChamberBlockEntity {
 
     @Override
     public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
-        filtering = new FilteringBehaviour(this, new ChamberValueBox()).forRecipes();
+        super.addBehaviours(behaviours);
+        filtering = new FilteringBehaviour(this, new ChamberValueBox())
+                .withCallback(newFilter -> contentsChanged = true).forRecipes();
         behaviours.add(filtering);
 
-        outputTank = new SmartFluidTankBehaviour(SmartFluidTankBehaviour.OUTPUT, this, 2, 2000, true)
+        outputTank = new SmartFluidTankBehaviour(SmartFluidTankBehaviour.OUTPUT, this, 2, 8000, true)
                 .whenFluidUpdates(() -> contentsChanged = true).forbidInsertion();
         behaviours.add(outputTank);
     }
@@ -163,6 +175,14 @@ public class ChamberBottomBlockEntity extends ChamberBlockEntity {
         updateSpoutput();
     }
 
+    @Override
+    public void lazyTick() {
+        if (!level.isClientSide) {
+            updateSpoutput();
+        }
+        super.lazyTick();
+    }
+
     private void updateSpoutput() {
         BlockState blockState = getBlockState();
         Direction currentFacing = blockState.getValue(FACING);
@@ -216,6 +236,8 @@ public class ChamberBottomBlockEntity extends ChamberBlockEntity {
 
         if ((!spoutputBuffer.isEmpty() || !spoutputFluidBuffer.isEmpty()) && !level.isClientSide)
             tryClearingSpoutputOverflow();
+
+        scheduleChangeOfContents();
 
     }
 
@@ -357,6 +379,13 @@ public class ChamberBottomBlockEntity extends ChamberBlockEntity {
         return this;
     }
 
+    @Override
+    protected NonNullList<Ingredient> ingredients(Recipe<?> recipe) {
+        if (recipe instanceof ChamberRecipe chamberRecipe)
+            return chamberRecipe.bottomIngredients;
+        return NonNullList.create();
+    }
+
     public boolean acceptOutputs(List<ItemStack> outputItems, List<FluidStack> outputFluids, boolean simulate) {
         outputInventory.allowInsertion();
         outputTank.allowInsertion();
@@ -392,7 +421,7 @@ public class ChamberBottomBlockEntity extends ChamberBlockEntity {
                         .orElse(null);
                 if (targetTank == null)
                     return false;
-                if (!acceptFluidOutputsIntoBasin(outputFluids, simulate, targetTank))
+                if (!acceptFluidOutputsIntoChamber(outputFluids, simulate, targetTank))
                     return false;
             }
 
@@ -413,20 +442,20 @@ public class ChamberBottomBlockEntity extends ChamberBlockEntity {
 
         if (targetInv == null && !outputItems.isEmpty())
             return false;
-        if (!acceptItemOutputsIntoBasin(outputItems, simulate, targetInv))
+        if (!acceptItemOutputsIntoChamber(outputItems, simulate, targetInv))
             return false;
         if (outputFluids.isEmpty())
             return true;
         if (targetTank == null)
             return false;
-        if (!acceptFluidOutputsIntoBasin(outputFluids, simulate, targetTank))
+        if (!acceptFluidOutputsIntoChamber(outputFluids, simulate, targetTank))
             return false;
 
         return true;
     }
 
-    private boolean acceptFluidOutputsIntoBasin(List<FluidStack> outputFluids, boolean simulate,
-                                                IFluidHandler targetTank) {
+    private boolean acceptFluidOutputsIntoChamber(List<FluidStack> outputFluids, boolean simulate,
+                                                  IFluidHandler targetTank) {
         for (FluidStack fluidStack : outputFluids) {
             IFluidHandler.FluidAction action = simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE;
             int fill = targetTank instanceof SmartFluidTankBehaviour.InternalFluidHandler
@@ -438,13 +467,25 @@ public class ChamberBottomBlockEntity extends ChamberBlockEntity {
         return true;
     }
 
-    private boolean acceptItemOutputsIntoBasin(List<ItemStack> outputItems, boolean simulate,
-                                               IItemHandler targetInv) {
+    private boolean acceptItemOutputsIntoChamber(List<ItemStack> outputItems, boolean simulate,
+                                                 IItemHandler targetInv) {
         for (ItemStack itemStack : outputItems) {
             if (!ItemHandlerHelper.insertItemStacked(targetInv, itemStack.copy(), simulate).isEmpty())
                 return false;
         }
         return true;
+    }
+
+    protected InteractionResult use(Level worldIn, BlockPos pos, Player player, InteractionHand handIn) {
+        ItemStack heldItem = player.getItemInHand(handIn);
+        SmartInventory inv = getOutputInventory();
+        if (heldItem.isEmpty() && !inv.isEmpty()) {
+            if (emptyInv(inv, player)) {
+                worldIn.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F, 1.0F + Create.RANDOM.nextFloat());
+                return InteractionResult.SUCCESS;
+            }
+        }
+        return super.use(worldIn, pos, player, handIn);
     }
 
     private void tickVisualizedOutputs() {

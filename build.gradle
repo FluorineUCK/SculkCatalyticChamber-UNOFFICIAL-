@@ -4,7 +4,7 @@ plugins {
     id 'maven-publish'
     id 'net.minecraftforge.gradle' version '[6.0,6.2)'
     id 'org.parchmentmc.librarian.forgegradle' version '1.+'
-    id 'org.spongepowered.mixin' version '0.7-SNAPSHOT'
+//    id 'org.spongepowered.mixin' version '0.7-SNAPSHOT'
 }
 
 version = mod_version
@@ -78,7 +78,7 @@ minecraft {
 
             property 'mixin.env.remapRefMap', 'true'
             property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
-            arg "-mixin.config=${mod_id}.mixin.json"
+//            arg "-mixin.config=${mod_id}.mixin.json"
 
             mods {
                 "${mod_id}" {
@@ -118,10 +118,10 @@ minecraft {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 
-mixin {
-    add sourceSets.main, "${mod_id}.refmap.json"
-    config "${mod_id}.mixin.json"
-}
+//mixin {
+//    add sourceSets.main, "${mod_id}.refmap.json"
+//    config "${mod_id}.mixin.json"
+//}
 
 
 repositories {
@@ -156,7 +156,7 @@ dependencies {
     implementation fg.deobf("com.jozufozu.flywheel:flywheel-forge-${minecraft_version}:${flywheel_version}")
     implementation fg.deobf("com.tterrag.registrate:Registrate:${registrate_version}")
 
-    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+//    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
 }
 

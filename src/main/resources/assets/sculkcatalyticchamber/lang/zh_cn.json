@@ -1,0 +1,10 @@
+{
+  "itemGroup.sculkcatalyticchamber": "深邃回响",
+
+  "block.sculkcatalyticchamber.chamber_top": "催化釜",
+  "block.sculkcatalyticchamber.chamber_middle": "催化釜",
+  "block.sculkcatalyticchamber.chamber": "催化釜",
+  "block.sculkcatalyticchamber.mechanical_shrieker": "动力尖啸体",
+
+  "sculkcatalyticchamber.gui.goggles.chamber_contents": "催化釜内含:"
+}

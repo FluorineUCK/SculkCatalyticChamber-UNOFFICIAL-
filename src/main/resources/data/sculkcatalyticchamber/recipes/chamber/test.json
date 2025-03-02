@@ -1,0 +1,33 @@
+{
+  "type": "sculkcatalyticchamber:chamber",
+  "heatRequirement": "heated",
+  "topIngredients": [
+    {
+      "item": "minecraft:coal"
+    },
+    {
+      "item": "minecraft:iron_ingot"
+    },
+    {
+      "amount": 250,
+      "fluid": "minecraft:water",
+      "nbt": {}
+    }
+  ],
+  "bottomIngredients": [
+    {
+      "item": "minecraft:echo_shard"
+    }
+  ],
+  "catalysts": [
+    {
+      "item": "minecraft:nether_star"
+    }
+  ],
+  "chances": 0,
+  "results": [
+    {
+      "item": "minecraft:dragon_egg"
+    }
+  ]
+}

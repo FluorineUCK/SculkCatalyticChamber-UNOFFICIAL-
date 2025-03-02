@@ -1,6 +1,9 @@
 package net.dragonegg.sculkcatalyticchamber.content.chamber;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -12,6 +15,12 @@ public class ChamberTopBlockEntity extends ChamberBlockEntity {
     public ChamberTopBlockEntity(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {
         super(typeIn, pos, state);
         setCapabilities();
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        scheduleChangeOfContents();
     }
 
     @Override
@@ -44,6 +53,13 @@ public class ChamberTopBlockEntity extends ChamberBlockEntity {
             return bottom;
         }
         return null;
+    }
+
+    @Override
+    protected NonNullList<Ingredient> ingredients(Recipe<?> recipe) {
+        if (recipe instanceof ChamberRecipe chamberRecipe)
+            return chamberRecipe.topIngredients;
+        return NonNullList.create();
     }
 
 

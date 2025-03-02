@@ -1,42 +1,35 @@
 package net.dragonegg.sculkcatalyticchamber.registry;
 
-import com.simibubi.create.foundation.data.CreateRegistrate;
+import com.simibubi.create.content.kinetics.BlockStressDefaults;
 import com.simibubi.create.foundation.data.SharedProperties;
 import com.simibubi.create.foundation.data.TagGen;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import com.tterrag.registrate.util.entry.BlockEntry;
-import com.tterrag.registrate.util.entry.RegistryEntry;
-import net.dragonegg.sculkcatalyticchamber.SculkCatalyticChamber;
-import net.dragonegg.sculkcatalyticchamber.content.shrieker.MechanicalShriekerBlock;
-import net.dragonegg.sculkcatalyticchamber.content.shrieker.MechanicalShriekerBlockEntity;
-import net.dragonegg.sculkcatalyticchamber.content.chamber.ChamberBottomBlock;
-import net.dragonegg.sculkcatalyticchamber.content.chamber.ChamberMiddleBlock;
+import net.dragonegg.sculkcatalyticchamber.content.shrieker.*;
+import net.dragonegg.sculkcatalyticchamber.content.chamber.*;
 
-import net.dragonegg.sculkcatalyticchamber.content.chamber.ChamberTopBlock;
-import net.dragonegg.sculkcatalyticchamber.content.chamber.ChamberBottomBlockEntity;
-import net.dragonegg.sculkcatalyticchamber.content.chamber.ChamberMiddleBlockEntity;
-import net.dragonegg.sculkcatalyticchamber.content.chamber.ChamberTopBlockEntity;
-import net.dragonegg.sculkcatalyticchamber.content.chamber.ChamberItem;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 
 import static com.simibubi.create.foundation.data.ModelGen.customItemModel;
-import static net.dragonegg.sculkcatalyticchamber.SculkCatalyticChamber.MODID;
+import static net.dragonegg.sculkcatalyticchamber.SculkCatalyticChamber.REGISTRATE;
 
 public class BlockRegistry {
 
-    private static final CreateRegistrate REGISTRATE = SculkCatalyticChamber.registrate();
-
-    public static final RegistryEntry<CreativeModeTab> TAB = REGISTRATE.defaultCreativeTab(MODID,
-            c -> c.icon(() -> new ItemStack(BlockRegistry.CHAMBER_BOTTOM_BLOCK.get()))
-    ).register();
+    static {
+        REGISTRATE.setCreativeTab(CreativeModTabRegistry.TAB);
+    }
 
     public static final BlockEntry<ChamberTopBlock> CHAMBER_TOP_BLOCK = REGISTRATE
             .block("chamber_top", ChamberTopBlock::new)
             .initialProperties(SharedProperties::stone)
-            .properties(p -> p.noLootTable().pushReaction(PushReaction.BLOCK))
+            .properties(p -> p
+                    .mapColor(MapColor.COLOR_GRAY)
+                    .sound(SoundType.NETHERITE_BLOCK)
+                    .pushReaction(PushReaction.BLOCK)
+                    .noLootTable())
             .transform(TagGen.pickaxeOnly())
             .register();
 
@@ -48,7 +41,10 @@ public class BlockRegistry {
     public static final BlockEntry<ChamberMiddleBlock> CHAMBER_MIDDLE_BLOCK = REGISTRATE
             .block("chamber_middle", ChamberMiddleBlock::new)
             .initialProperties(SharedProperties::stone)
-            .properties(p -> p.noLootTable().pushReaction(PushReaction.BLOCK))
+            .properties(p -> p
+                    .mapColor(MapColor.COLOR_GRAY)
+                    .pushReaction(PushReaction.BLOCK)
+                    .noLootTable())
             .transform(TagGen.pickaxeOnly())
             .register();
 
@@ -60,6 +56,9 @@ public class BlockRegistry {
     public static final BlockEntry<ChamberBottomBlock> CHAMBER_BOTTOM_BLOCK = REGISTRATE
             .block("chamber", ChamberBottomBlock::new)
             .initialProperties(SharedProperties::stone)
+            .properties(p -> p.mapColor(MapColor.COLOR_GRAY)
+                    .sound(SoundType.NETHERITE_BLOCK)
+                    .pushReaction(PushReaction.BLOCK))
             .transform(TagGen.pickaxeOnly())
             .item(ChamberItem::new)
             .transform(customItemModel())
@@ -68,20 +67,28 @@ public class BlockRegistry {
     public static final BlockEntityEntry<ChamberBottomBlockEntity> CHAMBER_BOTTOM_BLOCK_TILE = REGISTRATE
             .blockEntity("chamber", ChamberBottomBlockEntity::new)
             .validBlocks(CHAMBER_BOTTOM_BLOCK)
+            .renderer(() -> ChamberBottomRenderer::new)
             .register();
 
     public static final BlockEntry<MechanicalShriekerBlock> MECHANICAL_SHRIEKER_BLOCK = REGISTRATE
             .block("mechanical_shrieker", MechanicalShriekerBlock::new)
             .initialProperties(() -> Blocks.SCULK_SHRIEKER)
             .transform(TagGen.axeOrPickaxe())
+            .transform(BlockStressDefaults.setImpact(8.0))
             .item()
             .transform(customItemModel())
             .register();
 
     public static final BlockEntityEntry<MechanicalShriekerBlockEntity> MECHANICAL_SHRIEKER_BLOCK_TILE = REGISTRATE
             .blockEntity("mechanical_shrieker", MechanicalShriekerBlockEntity::new)
+            .instance(() -> MechanicalShriekerCogInstance::new)
             .validBlocks(MECHANICAL_SHRIEKER_BLOCK)
+            .renderer(() -> MechanicalShriekerRender::new)
             .register();
+
+    // Load this class
+
+    public static void register() {}
 
 
 }

@@ -100,10 +100,10 @@ public class ChamberRecipeSerializer implements RecipeSerializer<ChamberRecipe> 
 
         builder.withItemTopIngredients(topIngredients)
                 .withFluidTopIngredients(topFluidIngredients)
-                .withItemBottomIngredients(topIngredients)
-                .withFluidBottomIngredients(topFluidIngredients)
-                .withItemCatalysts(topIngredients)
-                .withFluidCatalysts(topFluidIngredients)
+                .withItemBottomIngredients(bottomIngredients)
+                .withFluidBottomIngredients(bottomFluidIngredients)
+                .withItemCatalysts(catalysts)
+                .withFluidCatalysts(fluidCatalysts)
                 .withItemOutputs(results)
                 .withFluidOutputs(fluidResults);
 
