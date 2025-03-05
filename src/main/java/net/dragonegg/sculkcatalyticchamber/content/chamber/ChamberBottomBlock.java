@@ -29,7 +29,7 @@ public class ChamberBottomBlock extends ChamberBlock<ChamberBottomBlockEntity> {
     }
 
     @Override
-    protected int ordinal() {
+    public int ordinal() {
         return 0;
     }
 

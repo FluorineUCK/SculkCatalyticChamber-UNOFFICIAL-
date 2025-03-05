@@ -7,6 +7,7 @@ import net.dragonegg.sculkcatalyticchamber.content.chamber.ChamberOperatingBlock
 import net.dragonegg.sculkcatalyticchamber.content.chamber.ChamberRecipe;
 import net.dragonegg.sculkcatalyticchamber.registry.RecipeRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
@@ -20,6 +21,7 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.Optional;
 
+import static com.simibubi.create.content.kinetics.base.DirectionalKineticBlock.FACING;
 import static net.dragonegg.sculkcatalyticchamber.content.shrieker.MechanicalShriekerBlock.SHRIEKING;
 
 public class MechanicalShriekerBlockEntity extends ChamberOperatingBlockEntity implements IHaveGoggleInformation {
@@ -28,6 +30,7 @@ public class MechanicalShriekerBlockEntity extends ChamberOperatingBlockEntity i
 
     public int runningTicks;
     public int processingTicks;
+    public int renderingTicks;
     public boolean running;
 
     public MechanicalShriekerBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -69,8 +72,10 @@ public class MechanicalShriekerBlockEntity extends ChamberOperatingBlockEntity i
             if (!getBlockState().getValue(SHRIEKING))
                 level.setBlock(worldPosition, getBlockState().setValue(SHRIEKING, true), 2);
 
-            if (level.isClientSide && runningTicks == 20)
-                renderParticles();
+            if (level.isClientSide && renderingTicks == 20) {
+                renderParticles(getBlockState().getValue(FACING));
+                renderingTicks = 0;
+            }
 
             if ((!level.isClientSide || isVirtual()) && runningTicks == 20) {
                 if (processingTicks < 0) {
@@ -95,16 +100,20 @@ public class MechanicalShriekerBlockEntity extends ChamberOperatingBlockEntity i
 
             if (runningTicks != 20)
                 runningTicks++;
+
+            if (renderingTicks != 20)
+                renderingTicks++;
         }
     }
 
-    private void renderParticles() {
+    private void renderParticles(Direction direction) {
         Vec3 c = VecHelper.getCenterOf(getBlockPos());
-        for (int i = 0; i < 7; i++) {
-            level.addParticle(ParticleTypes.SONIC_BOOM, c.x, c.y - i, c.z, 0, 0, 0);
+        for(int j1 = 0; j1 < 4; ++j1) {
+            level.addParticle(new MechanicalShriekerParticleData(j1 * 5, direction),
+                    false, c.x(), c.y(), c.z(), 0.0D, 0.0D, 0.0D);
         }
 
-        c = c.add(0, -5, 0);
+        c = c.add(0, -3, 0);
         RandomSource r = level.random;
         for (int i = 0; i < 10; i++) {
             Vec3 offset = VecHelper.offsetRandomly(Vec3.ZERO, r, .5f)

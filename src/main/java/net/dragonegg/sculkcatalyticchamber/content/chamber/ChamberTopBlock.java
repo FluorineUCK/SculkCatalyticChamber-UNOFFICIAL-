@@ -18,7 +18,7 @@ public class ChamberTopBlock extends ChamberBlock<ChamberTopBlockEntity> {
     }
 
     @Override
-    protected int ordinal() {
+    public int ordinal() {
         return 2;
     }
 

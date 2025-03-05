@@ -15,7 +15,7 @@ public class ChamberMiddleBlock extends ChamberBlock<ChamberMiddleBlockEntity> {
     }
 
     @Override
-    protected int ordinal() {
+    public int ordinal() {
         return 1;
     }
 

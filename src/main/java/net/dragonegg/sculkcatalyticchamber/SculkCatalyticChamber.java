@@ -2,10 +2,7 @@ package net.dragonegg.sculkcatalyticchamber;
 
 import com.simibubi.create.CreateClient;
 import com.simibubi.create.foundation.data.CreateRegistrate;
-import net.dragonegg.sculkcatalyticchamber.registry.BlockRegistry;
-import net.dragonegg.sculkcatalyticchamber.registry.CreativeModTabRegistry;
-import net.dragonegg.sculkcatalyticchamber.registry.PartialModelRegistry;
-import net.dragonegg.sculkcatalyticchamber.registry.RecipeRegistry;
+import net.dragonegg.sculkcatalyticchamber.registry.*;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
@@ -37,17 +34,19 @@ public class SculkCatalyticChamber {
         CreativeModTabRegistry.register(modEventBus);
         BlockRegistry.register();
         RecipeRegistry.register(modEventBus);
+        ParticleTypeRegistry.register(modEventBus);
 
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
-                modEventBus.addListener(SculkCatalyticChamber::clientInit));
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> onClientInit(modEventBus));
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
     }
 
-    public static void clientInit(FMLClientSetupEvent event) {
+    public static void onClientInit(IEventBus modEventBus) {
         // Some client setup code
         PartialModelRegistry.init();
+        SpriteShiftRegistry.init();
+        modEventBus.addListener(ParticleTypeRegistry::registerFactories);
     }
 
     public static ResourceLocation asResource(String path) {

@@ -9,6 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
@@ -18,12 +19,16 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.level.BlockEvent;
+
+import javax.annotation.Nullable;
+import java.util.HashSet;
+import java.util.Set;
 
 @SuppressWarnings("deprecation")
 @MethodsReturnNonnullByDefault
 public abstract class ChamberBlock<T extends ChamberBlockEntity> extends Block implements IBE<T>, IWrenchable {
+
+    public static final Set<BlockPos> breakPos = new HashSet<>();
 
     public ChamberBlock(Properties pProperties) {
         super(pProperties);
@@ -45,8 +50,27 @@ public abstract class ChamberBlock<T extends ChamberBlockEntity> extends Block i
     }
 
     @Override
-    public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
-        IBE.onRemove(state, worldIn, pos, newState);
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+        if (!state.is(newState.getBlock())) {
+            breakMultiblock(state, level, pos, null);
+            IBE.onRemove(state, level, pos, newState);
+        }
+    }
+
+    public static void breakMultiblock(BlockState state, LevelAccessor level, BlockPos pos, @Nullable Player player) {
+        if (!breakPos.contains(pos) && state.getBlock() instanceof ChamberBlock<?> chamber) {
+            breakPos.add(pos);
+            for (int i = 0; i < 3; i++) {
+                BlockPos posI = pos.above(i - chamber.ordinal());
+                BlockState stateI = level.getBlockState(posI);
+                if (stateI.getBlock() instanceof ChamberBlock<?> && !breakPos.contains(posI)) {
+                    breakPos.add(posI);
+                    level.destroyBlock(posI, player == null || !player.isCreative(), player);
+                    breakPos.remove(posI);
+                }
+            }
+            breakPos.remove(pos);
+        }
     }
 
     @Override
@@ -84,10 +108,6 @@ public abstract class ChamberBlock<T extends ChamberBlockEntity> extends Block i
         for (int i = 0; i < 3; i++) {
             BlockPos posI = pos.above(i - ordinal());
             BlockState stateI = world.getBlockState(posI);
-            BlockEvent.BreakEvent event = new BlockEvent.BreakEvent(world, posI, stateI, player);
-            MinecraftForge.EVENT_BUS.post(event);
-            if (event.isCanceled())
-                return InteractionResult.SUCCESS;
 
             if (player != null && !player.isCreative()) {
                 Block.getDrops(stateI, serverLevel, posI, world.getBlockEntity(posI), player, context.getItemInHand())
@@ -118,6 +138,6 @@ public abstract class ChamberBlock<T extends ChamberBlockEntity> extends Block i
                 .map(ItemHelper::calcRedstoneFromInventory).orElse(0);
     }
 
-    protected abstract int ordinal();
+    public abstract int ordinal();
 
 }
