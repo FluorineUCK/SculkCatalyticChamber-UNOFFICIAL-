@@ -9,7 +9,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
@@ -119,6 +118,10 @@ public abstract class ChamberBlock<T extends ChamberBlockEntity> extends Block i
 
         playRemoveSound(world, pos);
         return InteractionResult.SUCCESS;
+    }
+
+    public static boolean isChamber(LevelReader world, BlockPos pos) {
+        return world.getBlockEntity(pos) instanceof ChamberBlockEntity;
     }
 
     @Override

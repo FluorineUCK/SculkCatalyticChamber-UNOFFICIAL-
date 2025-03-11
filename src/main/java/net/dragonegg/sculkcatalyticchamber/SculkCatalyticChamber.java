@@ -31,6 +31,8 @@ public class SculkCatalyticChamber {
         RecipeRegistry.register(modEventBus);
         ParticleTypeRegistry.register(modEventBus);
 
+        ArmInteractionPointTypeRegistry.register();
+
         SCCConfig.register();
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> onClientInit(modEventBus));
